@@ -1,0 +1,25 @@
+**Changelog for setups**
+
+[6:32 PM] [09/04/22]* 2.14
+- Fix issue " jika sumber berkas tambalan tidak tersedia di /sdcard, namun mkshrc sistem anda telah ditambal" #80422(Bugs in patch feature)
+
+[18:55 PM] [18/03/22]* 2.13
+
+- Perubahan besar pada teks di skrip.
+[12:00 PM] [06/03/22]* 2.12
+- Perubahan sedikit teks dan menambah argumen opsi pendek
+
+[11:22 AM] [18/02/22]* 2.11
+- Teks berbahasa inggris
+
+[2:36 PM] [17:02:22]* 2.10
+- Fix bugs (Merubah variabel NEARME ke NEARME2 itu berefek pada skrip)
+
+-----
+# in Mkshrc Mood Mod Project
+## Bugs
+Fixed Can't patch with Mkshrc Mood Mod Project or mkshrc @7175 XDA files.
+
+# in buildfpath.sh
+Sekarang tidak butuh login sebagai root agar al automatis bekerja.
+

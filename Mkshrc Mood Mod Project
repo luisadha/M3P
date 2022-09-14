@@ -1,0 +1,1621 @@
+﻿# $Id$
+# $MirOS: src/bin/mksh/dot.mkshrc,v 1.88 2014/01/11 18:09:39 tg Exp $Android_mod by 7175@xda-developers.com 2014/08/04$
+# ${ENV:=/system/etc/mkshrc}
+ 
+# Patch by luisadha
+
+
+#---Alias
+alias lsxbin='ls /system/xbin/'
+alias lsbinext='ls /system/bin/.ext'
+alias lsbin='ls /system/bin/'
+alias sysro='mount -o remount,ro /system' >/dev/null 2>&1;
+alias sysrw='mount -o remount,rw /system' >/dev/null 2>&1;
+alias microsd='cd $SECONDARY_STORAGE'
+alias lrsaw='busybox ls -rSaw ${COLUMNS}';
+alias his='history'
+alias ...='cd ../../'
+alias open='netstat -pan --inet'
+alias xs='cd'
+alias vf='cd'
+alias moer='more'
+alias moew='more'
+alias acatenv='cat $ENV'
+
+x=${KSH_VERSION#*KSH }; x=${x%% *};
+if [ "$x" != "R50" ];
+then
+echo -e 'Warning: legacy devices but you can running with legacy mode,
+ please update your mksh binnary to R50 version later,
+ press "Enter" to iqnore. ';
+read IGNORE
+else
+echo "$KSH_VERSION"
+fi
+
+# Simple SSHD & CONNECTBOT Environment
+# /data/data/org.galexander.sshd/files
+
+#---Modif environment
+unset TERM
+ vendor="$(getprop ro.product.manufacturer)"
+
+USER=${USER:-"user"}
+LOGNAME=${LOGNAME:-"user"}
+export HOME='/sdcard'
+export BASH=$(whence -p bash)
+export SHELL="${0}"
+export ZSH=$(whence -p zsh)
+export TERM='linux'
+export VENDOR=$vendor
+export SSH_CLIENT="${SSH_CLIENT}"
+export SSH_TTY="${SSH_TTY}"
+export BUSER=$(whoami)
+
+#---Functions list
+function setenv {
+	eval export "\"$1\""'="$2"'
+}
+function dropmask() {
+unalias getprop
+export SSH_CONNECTION=$(getprop ro.product.device);
+}
+function login () {
+export USER=$(whoami)
+
+}
+function logout () {
+ login; dropmask;
+
+}
+#--HOSTNAME MUST = wlan0 for network
+function notsecure {
+HOSTNAME='localhost'
+hname=$(busybox ifconfig wlan0 | awk '/inet / { print $2 }' | sed -e s/addr:// ); echo ${hname:- "${HOSTNAME}"};
+}
+export SSH_CONNECTION=${SSH_CONNECTION:-`notsecure`}
+cu()
+{
+local program="$1"
+local help="$*";
+if [ -z "$program" ]; then echo "cu: Try \`cu --help' "; exit 1
+elif [ "$program" == "--help" ]; then coreutils --help;
+elif [ "$program" == "--version" ]; then coreutils --version;
+else eval cmd=--coreutils-prog=$1; coreutils $cmd $help; fi
+}
+function extract()      # Handy Extract Program (from Emmanuel Rouat bashrc)
+{
+    if [ -f $1 ] ; then
+        case $1 in
+            *.tar.bz2)   tar xvjf $1     ;;
+            *.tar.gz)    tar xvzf $1     ;;
+            *.bz2)       bunzip2 $1      ;;
+            *.rar)       unrar x $1      ;;
+            *.gz)        gunzip $1       ;;
+            *.tar)       tar xvf $1      ;;
+            *.tbz2)      tar xvjf $1     ;;
+            *.tgz)       tar xvzf $1     ;;
+            *.zip)       unzip $1        ;;
+            *.Z)         uncompress $1   ;;
+            *.7z)        7z x $1         ;;
+            *)           echo "'$1' cannot be extracted via >extract<" ;;
+        esac
+    else
+        echo "'$1' is not a valid file!"
+    fi
+}
+function fe() { find . -type f -iname '*'"${1:-}"'*' \
+-exec ${2:-file} {} \;  ; }
+
+# Creates an archive (*.tar.gz) from given directory.
+function maketar() { tar cvzf "${1%%/}.tar.gz"  "${1%%/}/"; }
+
+# Create a ZIP archive of a file or folder.
+function makezip() { zip -r "${1%%/}.zip" "$1" ; }
+
+# Make your directories and files access rights sane.
+function sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}
+
+#--SETUP ZSH's PROMPT
+alias zsh=' unset TERM; setenv TERM xterm; $(whence -p zsh); ';
+PPROMPT=$'%F{%(#.blue.green)}┌──(%B%F{%(#.red.blue)}%n%(#.💀%m).kali㉿kali)%b%F{%(#.blue.green)})-[%B%F{reset}%(6~.%-1~/…/%4~.%5~)%b%F{%(#.blue.green)}]
+└─%B%(#.%F{red}# .%F{blue}$% %b%F{reset} ';
+
+RRPROMPT=$'%(?.. %? %F{red}%B!%b%F{reset})%(1j. %j %F{yellow}%B⚙%b%F{reset}.) '
+
+setenv PROMPT "$PPROMPT"
+setenv RPROMPT "$RRPROMPT"
+
+#---------------------#
+
+case $KSH_VERSION {
+     (*MIRBSD\ KSH*R43*)
+          global NO_VAL_SUBS=1 ;;
+     (*MIRBSD\ KSH*)
+          global NO_VAL_SUBS=0
+          set -o inherit-xtrace \
+                +o pipefail ;;
+     (*) return 0 ;;
+}
+
+# fix for priviledge
+[[ -o -p ]] || set +p
+
+typeset -x FPATH BUSYBOX BB BBNDK TOOLBOX MKSH SHELL
+
+FPATH=/system/etc/fpath
+
+PATH=/vendor/bin:/system/vendor/bin:/system/bin:/system/bin/.ext:/system/xbin:/system/xbin/kern:/sbin:/sbin/bb
+
+LD_LIBRARY_PATH=/vendor/lib:/system/vendor/lib:/system/lib:/system/lib/pkgconfig:/system/lib/python2.6/lib-dynload:/lib
+
+export FPATH LD_LIBRARY_PATH PATH
+
+#autoload sysrw sysro rootrw rootro sudo
+autoload sudo
+
+
+unset BB BUSYBOX BBNDK TOOLBOX
+: ${BUSYBOX:=$(whence -p busybox)} ${BB:=$BUSYBOX}
+: ${BBNDK:=$(whence -p busybox.ndk)} ${BBNDK:=$BB}
+alias -x busybox="${BUSYBOX}"
+alias -x bb="${BUSYBOX}"
+
+: ${TOOLBOX:=$(whence -p toolbox)}
+alias -x toolbox="${TOOLBOX:=$(whence -p toolbox)}"
+alias -x tt="${TOOLBOX}"
+
+unset MKSH SHELL MKSHS
+: ${MKSH:=$(whence -p mksh)} ${SHELL:=$MKSH} ${MKSHS:=$(whence -p mkshs)} ${SHELL:=$MKSHS}
+
+export TOOLBOX BUSYBOX BB BBNDK MKSH SHELL MKSHS
+
+
+# 2nd-attempt execve shell
+unset EXECSHELL; eval export "\"EXECSHELL\""'="${MKSH:+/system/bin/mksh}"'
+
+unset TERM TERMINFO TERMPATH TERMINFO_DIRS
+typeset -x FCEDIT EDITOR VISUAL ED VIM VI MC NANO HOME TERMINFO TERM TERMPATH TERMINFO_DIRS
+
+
+#################
+# editor env. setup
+################# #################
+: ${ED="$(whence -p ed)"}
+: ${VIM:=$(whence -p vim)}
+: ${VI:=$(whence -p vi)}
+: ${MC:=$(whence -p mc)}
+: ${NANO:=$(whence -p nano)}
+
+export ED VI VIM MC NANO
+
+[[ -z $BBNDK ]] && { alias ed=ed; unalias ed; alias -x ed="$BB"' ed';} \
+|| \
+{ alias ed=ed; unalias ed; alias -x ed="$BBNDK"' ed';}
+
+[[ -z $VIM ]] && unset VIM || { alias vim=vim; unalias vim; alias -x vim="$VIM";}
+
+[[ -z $MC ]] && unset MC || { alias mc=mc; unalias mc; alias -x mc="$MC";}
+
+[[ -z $VIM ]] && unset VIM || { alias vim=vim; unalias vim; alias -x vim="ulimit -e 1 && $VIM";}
+
+[[ -z $MC ]] && unset MC || { alias mc=mc; unalias mc; alias -x mc="ulimit -e 1 && $MC";}
+
+[[ -z $NANO ]]  && unset NANO || { alias nano=nano; unalias nano; alias -x nano="ulimit -e 1 && $NANO";}
+
+[[ -z $BBNDK ]] && { alias vi=vi; unalias vi; alias -x vi="$BB"' vi';} \
+|| \
+{ alias vi=vi; unalias vi; alias -x vi="$BBNDK"' vi';}
+
+export EDITOR="$ED"
+: ${EDITOR:=$VIM} ${EDITOR:=$VI} ${EDITOR:=$NANO} ${EDITOR:=$MC}
+: ${VISUAL:=${EDITOR:=$ED}} ${FCEDIT:=${EDITOR:=$ED}}
+################# #################
+#################
+
+
+
+alias -x id=${ID:=$BBNDK id}
+export RESOLV_HOST_CONF=/system/etc/resolv.conf
+
+export FCEDIT VISUAL ID
+
+
+#
+# make tmp directory for Andy
+#
+
+mktmp3(){
+  [[ -e $TMPDIR ]] && [[ -w $TMPDIR ]] && return 0 || :
+
+  [[ -e /sdcard ]] || {
+    [[ -e /storage/emulated/0 ]] && ln -sf /storage/emulated/0 /sdcard
+    }
+
+  (( $USER_ID )) && {
+    export TMPDIR=/sdcard/.tmp/$RANDOM
+    mkdir -p $TMPDIR 2>/dev/null
+  } || :
+
+  (( $USER_ID )) || {
+    busybox mount -o rw,remount /
+    mkdir -p /tmp 2>/dev/null
+    busybox mount -o ro,remount /
+    busybox mount -t tmpfs -o rw /tmp /tmp
+    export TMPDIR=/tmp/$RANDOM
+    mkdir -p $TMPDIR 2>/dev/null
+  }
+}
+
+mktmp3
+
+
+
+
+: ${MKSH:=$(whence -p mksh)}; \
+\
+case $- {
+(*i*)
+
+# limits
+(( USER_ID )) || {
+set +o restricted
+set +o bgnice
+
+#ulimit -e 1 # max-nice (0-40)
+set +o bgnice
+#ulimit -r 7 # lowest-highest ioprio (0-7)
+}
+
+{ ulimit -c 0; "$(whence -p busybox)" ionice -n 7 -c 2 -p $$; "$(whence -p busybox)" renice -13 -p $$; } >/dev/null 2>&1
+
+
+set -o nolog +o verbose +o trackall +o errexit -o braceexpand
+
+ulimit -e 1; \
+PS4='[${EPOCHREALTIME:-}] '; PS1=$'\1\r'; \
+    (( ${NO_VAL_SUBS:-1} ))  \
+ && \
+ {
+   ###  ..(PS1) NO VALSUB..  ###
+   PS1+=$'\1\e[2;41;33m\1''$(local e=$?
+   (( e )) && print -n -- ${e}$'\''\1\e[0;7;2m\1'\''"|")'$'\1\e[0;7;2m\1''${ : ${USER:=$({ local x=\?; ulimit -c 0 && ulimit -e 1 && \
+x="$($BBNDK id 2>/dev/null)"
+x=${x#*\(}
+x=${x%%\)*};} \
+|| x=$USER_ID; print -n -- $x)}; print -n -- $USER_ID;}:${PWD:-?}>'$'\1\e[0m\1 '
+ } \
+|| \
+{
+   ###  ..(PS1) VALSUB..  ###
+   PS1+='${|
+	local e=$?
+	[[ -o -x ]] && set +x && global -x XTR_DBG=1 || global -x XTR_DBG=0
+#export XTR_DBG
+
+	(( e )) && \
+REPLY+=$'\''\1\e[0;30;43m\1'\''${e}$'\''\1\e[0m\1'\''$'\''\1\e[2;37;40m\1'\''"|"$'\''\1\e[0m\1'\'' && { global ERRNO ; eval export "\"ERRNO\""'\''="${e:-0}"'\'' ; } || :
+
+ REPLY+="$(if
+	  [[ ${HOSTNAME:-android} = *([Aa]ndroid|localhost) ]];
+	                 then
+   
+  	 print -n -- $'\''\1\e[0;40;2;36m\1'\''$USER$'\''\1\e[0m\1'\''
+  	                elif
+   ( (( ${#HOSTNAME} > 13 )) || \
+     (( ${%HOSTNAME} > 13 )) )
+                  then
+    print -n --''\1\e[0;33;40m${HOSTNAME:0:12}..\1\e[0m''
+
+                  else
+    print -n -- "\e[0;33;40m${HOSTNAME:-?}\e[0m"
+                   fi)"
+
+
+REPLY+=\
+$'\''\e[0;40;7;1;30m:\e[0m\1\e[0;40;2;36m\1'\''$SSH_CONNECTION$'\''\e[0;40;7;1;30m:\e[0m\1\e[0m\1'\''
+
+# REPLY+=\
+# $'\''\1\e[0;31;40m\1'\''":
+
+# "$'\''\1\e[0m\1'\''
+
+	local d=${PWD:-?} p=~
+	[[ $p = ?(*/) ]] || d=${d/#$p/~}
+	local m=${%d} n p=\>
+	(( m > 0 )) || m=${#d}
+	(( m > (n = (COLUMNS/3 < 7 ? 7 : COLUMNS/3)) )) && d=${d:(-n)} \
+	|| p=
+  # grey: 0;40;7;1;30 # 4;0;0;140 # ;01;3;47#
+	REPLY+=\
+$'\''\1\e[2;37;40m\1'\''${p}$'\''\1\e[0;33;40m\1'\''${d}$'\''\1\e[0m\1'\''
+	
+	REPLY+=${| REPLY=\
+$'\''\1\e[0;40;7;1;30m\1'\''\%$'\''\1\e[0m\1'\''
+    				(( USER_ID )) \
+    				&& return 0 \
+    				|| REPLY=\#
+    REPLY=\
+$'\''\1\e[0;7;31;47m\1'\''${REPLY}$'\''\1\e[0m\1'\''
+         return 0
+         }
+
+ (( XTR_DBG )) && set -x
+	return ${e};} '
+}
+
+typeset -x CUR_WIDTH VIM VIMPATH
+: ${MKSH:=$(whence -p mksh)}
+: ${SHELL:=$MKSH}
+# LD_LIBRARY_PATH=/system/ubin/lib:/lib:${LD_LIBRARY_PATH}:/system/usr/lib
+PATH=/system/ubin:${PATH}:/bin:/system/usr/bin
+: ${FPATH:=/system/etc/fpath}
+
+: ${TELNET_PORT:-8080}
+: ${COLUMNS:-51}
+: ${BASH:=bash --rcfile /system/etc/bash/bashrc} && \
+alias -x bash='bash --rcfile /system/etc/bash/bashrc'
+: ${CUR_WIDTH:-141}
+
+ulimit -c 0 && while :
+do
+# HOME && HISTORY
+typeset -x HOME HISTFILE HISTSIZE
+
+    { [[ -r /data/media ]] && (local testusr=/data/media/"$RANDOM" && touch "${testusr:-}" >/dev/null 2>&1 && rm "$testusr" >/dev/null 2>&1) && typeset -x HOME=/data/media
+    } || \
+      { [[ -r /sdcard && -w /sdcard ]] && typeset -x HOME=/sdcard
+      } || \
+      { [[ -r /storage/emulated/legacy ]] && typeset -x HOME=/storage/emulated/legacy
+      } || \
+      { typeset -x HOME=/ ; } \
+&& \
+  { export HOME; touch ~/.mkshhist 2>/dev/null && chmod 0770 ~/.mkshhist* 2>/dev/null || break 1
+  }
+
+export HISTSIZE=2700 HOME HISTFILE=~/.mkshhist
+break 1
+done
+
+export MKSH BASH FPATH BASH
+
+
+: ${VIMDIFF:=${VIM%/*}/vimdiff} ${VIMPATH:=$VIM} ${EX:=${VIM%/*}/ex} ${VIEW:=${VIM%/*}/view} ${VIEWDIFF:=${VIM%/*}/viewdiff}
+: ${VIMRUNTIME:=/system/etc/vim}
+unset TERMCAP # depr.
+# MC_KEYMAP MCEdit MC_SKIN MC_COLOR_TABLE
+: ${MC:=$(whence -p mc)} ${MCDIFF:=$(whence -p mcdiff)} ${MCDIFF:=$MC mcdiff}
+: ${MC_DATADIR:=/system/etc/mc} ${MC_DATADIR:=/system/usr/share/mc} ${MC_DATADIR:=/sdcard}
+: ${MC_TMPDIR:=${TMPDIR:-/sdcard}}
+: ${LINKS:=$(whence -p links)}
+
+export ED VI VIM VIMDIFF VIMPATH VIEWDIFF EX VIEW VIMRUNTIME MC MCDIFF MC_DATADIR LINKS
+:         ;;
+
+(*)
+set +u
+### : ${LD_LIBRARY_PATH:=/system/ubin:${LD_LIBRARY_PATH}:/sbin}
+### : ${PATH:=${PATH}:/system/ubin:/sbin:/system/usr/bin}
+:        ;;
+}
+
+
+## nsterm-c also perfect, cut+pste, enter, del
+#
+######## -----TERM--SCHEISSE----- ########
+#
+## "*c terms" perfect, xtermc, xtermc 
+: ${TERMINFO:=/system/etc/terminfo}
+set -A TERMINFO_DIRS -- $($BBNDK find /system/etc/terminfo -depth -type d -regex '/system/etc/terminfo/.*')
+: ${TERM=xtermc} ${TERMPATH=$(print -n -- ${TERMINFO@Q}"/${TERM:0:1}/"${TERM@Q})}
+export TERMINFO TERM TERMPATH
+
+
+: ${ADB:=/system/bin/adb}
+: ${ADBD:=/sbin/adbd}
+: ${FPATH:=/system/etc/fpath}
+: ${USER:=$(ulimit -c 0 && { local x=\?; x="$($BBNDK id 2>/dev/null)"; x=${x#*=}; x=${x%%\ *};} \
+|| \
+{ x="$(ulimit -c 0 && $BBNDK id 2>/dev/null)"; x=${x#*\=}; x=${x%%\ g*};}; print -n -- $x)}
+
+
+alias which=which; unalias which; \
+alias -x which='whence -p'
+
+
+set -U -o markdirs -o trackall
+(( ${NO_VAL_SUBS:-1} )) || set -o inherit-xtrace
+
+
+# Busybox Aliases
+## off: cp
+: ${BBNDK:=$(whence -p busybox.ndk)}
+: ${BB:=$(whence -p busybox)}
+export BBNDK BB
+unset i && \
+for i in ed vi catv pgrep pidof \
+chmod chown mkdir mount umount mv rm rmdir renice ionice readlink touch insmod lsmod modinfo modprobe swapon swapoff mkswap rmmod hexdump df ln sync dd du od
+do
+  { [[ ! -z ${BBNDK:-} && -x $BBNDK ]] && \
+  { alias ${i}=${i}; unalias ${i}; alias -x "${i}"="${BBNDK} ${i}";};} \
+    || \
+    { [[ -e /system/xbin/busybox && -x /system/xbin/busybox ]] && \
+    { alias ${i}=${i}; unalias ${i}; alias -x "${i}"="/system/xbin/busybox ${i}";};} \
+      || \
+      { [[ ! -z ${BB:-} && -x $BB ]] && \
+      { alias ${i}=${i}; unalias ${i}; alias -x "${i}"="${BB:=$(whence -p busybox)} ${i}";};}
+done \
+&& unset i
+
+[[ ! -z ${BBNDK:=$(whence -p busybox.ndk)} ]] && \
+{ alias fstrim=fstrim; unalias fstrim; alias -x "fstrim"="$(whence -p fstrim)";}
+
+# toolbox aliases
+# rm''d: hd od cat sleep insmod lsmod modinfo modprobe swapon swapoff mkswap rmmod top id df ps
+: ${TOOLBOX:=$(whence -p toolbox)}
+export TOOLBOX
+unset i && \
+for i in getprop
+do
+  { [[ -e /system/bin/toolbox && -x /system/bin/toolbox ]] && \
+  { alias ${i}=${i}; unalias ${i}; alias -x "${i}"="/system/bin/toolbox ${i}";};} \
+    || \
+    { [[ ! -z ${TOOLBOX:-} && -x ${TOOLBOX:-} ]] && \
+    { alias ${i}=${i}; unalias ${i}; alias -x "${i}"="$TOOLBOX ${i}";};}
+done \
+&& unset i
+
+#alias echo=echo; unalias echo; unset echo; \
+#alias -x echo='builtin echo'
+alias cat=cat; unalias cat; unset cat; \
+alias -x cat='builtin cat'
+
+#
+# set user id, run prog
+#
+typeset -x CHPST; \
+: ${CHPST:=$(whence -p chpst)}; alias -x chpst="$CHPST"
+
+typeset -fx suid; \
+function suid {
+local progy=
+(( $# > 1 )) || progy='mksh'
+"${SU:-$(whence -p su)}" --command exec "${SHELL:-/system/bin/mksh} -c "\""chpst -u $@ ${progy:-}"\"
+}
+
+# vanilla sudo
+typeset -fx sudov; \
+function sudov {
+"${SU:-$(whence -p su)}" --shell "${MKSH:-$(whence -p mksh)}" -c exec "${SHELL:-/system/bin/mksh} -c "\""$@"\"
+}
+
+#
+# pexec`'d sudo, pexec-su shell with no args
+# 
+#
+typeset -fx sudo; \
+function sudo {
+(( $# )) || set -- /system/bin/mksh
+"$(whence -p pexec)" --shell /system/bin/mksh -c "/system/xbin/su --command '/system/bin/mksh -c '\''$@'\'"
+}
+alias -x psudo=sudo
+alias xx=sudo
+alias sx=sudo
+
+alias doch='sudo $(fc -ln -1)'
+alias dochja='sysrw; sudo $(fc -ln -1); (( $? )) || sync; sysro'
+alias aberdochja='rootrw; sysrw; sudo $(fc -ln -1); (( $? )) || sync; sysro; rootro'
+
+
+whence -p rot13 >/dev/null || alias rot13='tr \
+    abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ \
+    nopqrstuvwxyzabcdefghijklmNOPQRSTUVWXYZABCDEFGHIJKLM'
+
+
+#
+# START OF STOCK MKSHRC FUNCTIONS
+#
+# ---------------- ---------------- ---------------- ---------------- --------------------------- ---------------- ---------------- ---------------
+#-
+
+# hd
+function hd {
+		local -Uui16 -Z11 pos=0
+		local -Uui16 -Z5 hv=2147483647
+		local dasc line i
+
+		cat "$@" | { set +U; if read -arN -1 line; then
+			typeset -i1 line
+			i=0
+			while (( i < ${#line[*]} )); do
+				hv=${line[i++]}
+				if (( (pos & 15) == 0 )); then
+					(( pos )) && print -r -- "$dasc|"
+					print -n "${pos#16#}  "
+					dasc=' |'
+				fi
+				print -n "${hv#16#} "
+				if (( (hv < 32) || (hv > 126) )); then
+					dasc+=.
+				else
+					dasc+=${line[i-1]#1#}
+				fi
+				(( (pos++ & 15) == 7 )) && print -n -- '- '
+			done
+			while (( pos & 15 )); do
+				print -n '   '
+				(( (pos++ & 15) == 7 )) && print -n -- '- '
+			done
+			(( hv == 2147483647 )) || print -r -- "$dasc|"
+		fi; }
+}
+
+# Berkeley C shell compatible dirs, popd, and pushd functions
+# Z shell compatible chpwd() hook, used to update DIRSTACK[0]
+DIRSTACKBASE=$(realpath ~/. 2>/dev/null || print -nr -- "${HOME:-/}")
+set -A DIRSTACK
+function chpwd {
+	DIRSTACK[0]=$(realpath . 2>/dev/null || print -r -- "$PWD")
+	[[ $DIRSTACKBASE = ?(*/) ]] || \
+	    DIRSTACK[0]=${DIRSTACK[0]/#$DIRSTACKBASE/~}
+	:
+}
+chpwd .
+function cd {
+	builtin cd "$@" || return $?
+	chpwd "$@"
+}
+function cd_csh {
+	local d t=${1/#~/$DIRSTACKBASE}
+
+	if ! d=$(builtin cd "$t" 2>&1); then
+		print -u2 "${1}: ${d##*cd: $t: }."
+		return 1
+	fi
+	cd "$t"
+}
+function dirs {
+	local d dwidth
+	local -i fl=0 fv=0 fn=0 cpos=0
+
+	while getopts ":lvn" d; do
+		case $d {
+		(l)	fl=1 ;;
+		(v)	fv=1 ;;
+		(n)	fn=1 ;;
+		(*)	print -u2 'Usage: dirs [-lvn].'
+			return 1 ;;
+		}
+	done
+	shift $((OPTIND - 1))
+	if (( $# > 0 )); then
+		print -u2 'Usage: dirs [-lvn].'
+		return 1
+	fi
+	if (( fv )); then
+		fv=0
+		while (( fv < ${#DIRSTACK[*]} )); do
+			d=${DIRSTACK[fv]}
+			(( fl )) && d=${d/#~/$DIRSTACKBASE}
+			print -r -- "$fv	$d"
+			let fv++
+		done
+	else
+		fv=0
+		while (( fv < ${#DIRSTACK[*]} )); do
+			d=${DIRSTACK[fv]}
+			(( fl )) && d=${d/#~/$DIRSTACKBASE}
+			(( dwidth = (${%d} > 0 ? ${%d} : ${#d}) ))
+			if (( fn && (cpos += dwidth + 1) >= 79 && \
+			    dwidth < 80 )); then
+				print
+				(( cpos = dwidth + 1 ))
+			fi
+			print -nr -- "$d "
+			let fv++
+		done
+		print
+	fi
+	return 0
+}
+function popd {
+	local d fa
+	local -i n=1
+
+	while getopts ":0123456789lvn" d; do
+		case $d {
+		(l|v|n)	fa+=" -$d" ;;
+		(+*)	n=2
+			break ;;
+		(*)	print -u2 'Usage: popd [-lvn] [+<n>].'
+			return 1 ;;
+		}
+	done
+	shift $((OPTIND - n))
+	n=0
+	if (( $# > 1 )); then
+		print -u2 popd: Too many arguments.
+		return 1
+	elif [[ $1 = ++([0-9]) && $1 != +0 ]]; then
+		if (( (n = ${1#+}) >= ${#DIRSTACK[*]} )); then
+			print -u2 popd: Directory stack not that deep.
+			return 1
+		fi
+	elif [[ -n $1 ]]; then
+		print -u2 popd: Bad directory.
+		return 1
+	fi
+	if (( ${#DIRSTACK[*]} < 2 )); then
+		print -u2 popd: Directory stack empty.
+		return 1
+	fi
+	unset DIRSTACK[n]
+	set -A DIRSTACK -- "${DIRSTACK[@]}"
+	cd_csh "${DIRSTACK[0]}" || return 1
+	dirs $fa
+}
+function pushd {
+	local d fa
+	local -i n=1
+
+	while getopts ":0123456789lvn" d; do
+		case $d {
+		(l|v|n)	fa+=" -$d" ;;
+		(+*)	n=2
+			break ;;
+		(*)	print -u2 'Usage: pushd [-lvn] [<dir>|+<n>].'
+			return 1 ;;
+		}
+	done
+	shift $((OPTIND - n))
+	if (( $# == 0 )); then
+		if (( ${#DIRSTACK[*]} < 2 )); then
+			print -u2 pushd: No other directory.
+			return 1
+		fi
+		d=${DIRSTACK[1]}
+		DIRSTACK[1]=${DIRSTACK[0]}
+		cd_csh "$d" || return 1
+	elif (( $# > 1 )); then
+		print -u2 pushd: Too many arguments.
+		return 1
+	elif [[ $1 = ++([0-9]) && $1 != +0 ]]; then
+		if (( (n = ${1#+}) >= ${#DIRSTACK[*]} )); then
+			print -u2 pushd: Directory stack not that deep.
+			return 1
+		fi
+		while (( n-- )); do
+			d=${DIRSTACK[0]}
+			unset DIRSTACK[0]
+			set -A DIRSTACK -- "${DIRSTACK[@]}" "$d"
+		done
+		cd_csh "${DIRSTACK[0]}" || return 1
+	else
+		set -A DIRSTACK -- placeholder "${DIRSTACK[@]}"
+		cd_csh "$1" || return 1
+	fi
+	dirs $fa
+}
+
+# pager (not control character safe)
+function smores {
+	local dummy line llen curlin=0
+
+	cat "$@" | while IFS= read -r line; do
+		llen=${%line}
+		(( llen == -1 )) && llen=${#line}
+		(( llen = llen ? (llen + COLUMNS - 1) / COLUMNS : 1 ))
+		if (( (curlin += llen) >= LINES )); then
+			print -n -- '\033[7m--more--\033[0m'
+			read -u1 dummy
+			[[ $dummy = [Qq]* ]] && return 0
+			curlin=$llen
+		fi
+		print -r -- "$line"
+	done
+}
+
+typeset -x PAGER='smores' MANPAGER='${PAGER}'
+
+# base64 encoder and decoder, RFC compliant, NUL safe
+function Lb64decode {
+	[[ -o utf8-mode ]]; local u=$?
+	set +U
+	local c s="$*" t=
+	[[ -n $s ]] || { s=$(cat; print x); s=${s%x}; }
+	local -i i=0 j=0 n=${#s} p=0 v x
+	local -i16 o
+
+	while (( i < n )); do
+		c=${s:(i++):1}
+		case $c {
+		(=)	break ;;
+		([A-Z])	(( v = 1#$c - 65 )) ;;
+		([a-z])	(( v = 1#$c - 71 )) ;;
+		([0-9])	(( v = 1#$c + 4 )) ;;
+		(+)	v=62 ;;
+		(/)	v=63 ;;
+		(*)	continue ;;
+		}
+		(( x = (x << 6) | v ))
+		case $((p++)) {
+		(0)	continue ;;
+		(1)	(( o = (x >> 4) & 255 )) ;;
+		(2)	(( o = (x >> 2) & 255 )) ;;
+		(3)	(( o = x & 255 ))
+			p=0
+			;;
+		}
+		t+=\\x${o#16#}
+		(( ++j & 4095 )) && continue
+		print -n $t
+		t=
+	done
+	print -n $t
+	(( u )) || set -U
+}
+
+set -A Lb64encode_code -- A B C D E F G H I J K L M N O P Q R S T U V W X Y Z \
+    a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9 + /
+function Lb64encode {
+	[[ -o utf8-mode ]]; local u=$?
+	set +U
+	local c s t
+	if (( $# )); then
+		read -raN-1 s <<<"$*"
+		unset s[${#s[*]}-1]
+	else
+		read -raN-1 s
+	fi
+	local -i i=0 n=${#s[*]} j v
+
+	while (( i < n )); do
+		(( v = s[i++] << 16 ))
+		(( j = i < n ? s[i++] : 0 ))
+		(( v |= j << 8 ))
+		(( j = i < n ? s[i++] : 0 ))
+		(( v |= j ))
+		t+=${Lb64encode_code[v >> 18]}${Lb64encode_code[v >> 12 & 63]}
+		c=${Lb64encode_code[v >> 6 & 63]}
+		if (( i <= n )); then
+			t+=$c${Lb64encode_code[v & 63]}
+		elif (( i == n + 1 )); then
+			t+=$c=
+		else
+			t+===
+		fi
+		if (( ${#t} == 76 || i >= n )); then
+			print $t
+			t=
+		fi
+	done
+	(( u )) || set -U
+}
+
+# Better Avalanche for the Jenkins Hash
+typeset -Z11 -Uui16 Lbafh_v
+function Lbafh_init {
+	Lbafh_v=0
+}
+function Lbafh_add {
+	[[ -o utf8-mode ]]; local u=$?
+	set +U
+	local s
+	if (( $# )); then
+		read -raN-1 s <<<"$*"
+		unset s[${#s[*]}-1]
+	else
+		read -raN-1 s
+	fi
+	local -i i=0 n=${#s[*]}
+
+	while (( i < n )); do
+		((# Lbafh_v = (Lbafh_v + s[i++] + 1) * 1025 ))
+		((# Lbafh_v ^= Lbafh_v >> 6 ))
+	done
+
+	(( u )) || set -U
+}
+function Lbafh_finish {
+	local -Ui t
+
+	((# t = (((Lbafh_v >> 7) & 0x01010101) * 0x1B) ^ \
+	    ((Lbafh_v << 1) & 0xFEFEFEFE) ))
+	((# Lbafh_v = t ^ (t >>> 8) ^ (Lbafh_v >>> 8) ^ \
+	    (Lbafh_v >>> 16) ^ (Lbafh_v >>> 24) ))
+	:
+}
+
+# strip comments (and leading/trailing whitespace if IFS is set) from
+# any file(s) given as argument, or stdin if none, and spew to stdout
+function Lstripcom {
+	cat "$@" | { set -o noglob; while read _line; do
+		_line=${_line%%#*}
+		[[ -n $_line ]] && print -r -- $_line
+	done; }
+}
+
+# give MidnightBSD's laffer1 a bit of csh feeling
+# setenv
+
+export SHELL=${MKSH@Q} PAGER MANPAGER=PAGER MANWIDTH=45 LESSHISTFILE=-
+alias cls='print -n \\033c'
+
+#
+#
+# END OF STOCK MKSHRC FUNCTIONS
+#
+#
+
+case $- {
+
+      (*)
+      :
+
+;|
+
+      (!*i*)
+      :
+
+set -o nolog
+#set +o physical
+#set -o trackall
+#set +o allexport
+set -o braceexpand
+# set +o bgnice
+#set +e
+set +u -U
+set +v +x
+#+C +f +k
+#set +h
+
+;;&
+
+     (*i*)
+     :
+
+#track cmds
+set -h
+set -m
+
+# Curl link checks
+(( USER_ID )) || (
+ulimit -e 1 && ulimit -r 1
+[[ -z $(whence -p curl) ]] || {
+[[ -z /system/lib/libcurl.so.5.2.0 ]] || \
+([[ -e /system/lib/libcurl.so.5 ]] || \
+{ sysrw && ln -sn /system/lib/libcurl.so.5.2.0 /system/lib/libcurl.so.5 2>/dev/null;})
+# libcrypto
+[[ -z /system/lib/libcrypto.so ]] || \
+([[ -e /system/lib/libcrypto.so.1.0.0 ]] || \
+{ sysrw && ln -sn /system/lib/libcrypto.so /system/lib/libcrypto.so.1.0.0 2>/dev/null;})
+# libssl
+[[ -z /system/lib/libssl.so ]] || \
+([[ -e /system/lib/libssl.so.1.0.0 ]] || \
+{ sysrw && ln -sn /system/lib/libssl.so /system/lib/libssl.so.1.0.0 2>/dev/null;})
+})
+
+
+{ alias -x cdr='cd /'
+## [[ -e /bin ]] && alias -x cdb='cd /bin' || 
+alias -x cdb='cd /system/bin'
+alias -x cdsb='cd /sbin'
+[[ -e /lib ]] && alias -x cdl='cd /lib' || alias -x cdl='cd /system/lib'
+alias -x cdsl='cd /system/lib'
+alias -x cds='cd /system'
+alias -x cdx='cd /system/xbin'
+[[ -e /etc ]] && alias -x cde='cd /etc' || alias -x cde='cd /system/etc'
+alias -x cdse='cd /system/etc'
+alias -x cdf='cd /system/etc/fpath'
+alias -x cdi='cd /system/etc/init.d'
+alias -x cda='cd /system/app'
+alias -x cdt="cd ${TMPDIR:-/tmp}"
+[[ -e /usr ]] && alias -x cdu='cd /usr' || alias -x cdu='cd /system/usr'
+alias -x cdsu='cd -L /system/usr'
+alias -x cdsub='cd -L /system/usr/bin'
+alias -x cdsusb='cd -L /system/usr/sbin'
+alias -x cdsul='cd -L /system/usr/lib'
+alias -x cdsus='cd -L /system/usr/share'
+alias -x cdsrc='cd -L /system/usr/src'
+alias -x cdd='cd /data'
+alias -x cdda='cd /data/app'
+alias -x cddd='cd /data/data'
+alias -x cddm='cd /data/media'
+alias -x cd0='cd /data/media/0'
+alias -x cd1='cd -L /data/media/1'
+alias -x cd00='cd /data/media/0/0'
+alias -x cd4='cd /data/media/0/0/.4.4'
+alias -x cd0='cd /data/media/0'
+alias -x cd0dl='cd /data/media/0/Download'
+alias -x cd0t='cd /data/media/0/tmp'
+alias -x cdsd='cd -L /sdcard'
+alias -x cdsdd='cd -L /sdcard/Download'
+alias -x cddl='cd -L /sdcard/Download'
+alias -x cdsdt='cd -L /sdcard/.tmp'
+alias -x cdq='cd -P /system/ubin'
+alias -x cddl='cd -L /sdcard/Download'
+alias -x cdm='cd /data/media'
+alias -x cdad='cd /sdcard/Android/data'
+alias -x cdqq='cd -P /system/ubin'
+alias -x cddlo='cd /data/local'
+alias -x cdii='cd /system/etc/initx'
+
+alias -x pgi='busybox.ndk ps -wlT | grep -i'
+
+alias -x sc="${BUSYBOX}"' sync'
+export GREP="$(whence -p grep)"
+alias grep=grep; unalias grep; alias -x grep="${GREP}"' --color=auto'
+alias -x gi='grep -ai'
+alias -x ge='grep -aiE'
+alias -x gf='grep -aiF'
+alias -x egr='grep -E'
+alias -x fgr='grep -F'
+
+alias -x mg='busybox mount | grep'
+alias -x lg='busybox ls -A | grep'
+alias -x dg='busybox df | grep'
+
+alias -x mkotg='otg'
+
+alias -x hst="history -r"
+alias -x hr="history -r"
+
+typeset -fx findabtype; findabtype() {
+	find "$@" -depth -type s -o -type b -o -type p -o -type c -o -type l -print0 \
+	 | 2>/dev/null xargs -0 -n 1 -- print -r --
+}
+
+alias tchm='toolbox chmod'; alias tcho='toolbox chown'
+alias bchm='busybox chmod'; alias bcho='busybox chown'
+alias tchn='tcho'; alias tchd='tchm'
+alias bchn='bcho'; alias bchd='bchm'
+
+alias -x str="$BB"' strings -an1'
+alias -x lnsfn="$BB"' ln -sfn'
+alias -x lnsf="$BB"' ln -sf'
+alias -x urw='usrrw'
+alias -x uro='usrro'
+alias -x urs='usrrws'
+alias -x trw='tmprw'
+alias -x trs='tmprws'
+alias -x drw='datrw'
+alias -x drs='datrws'
+
+alias -x smksh='/system/xbin/daemonsu --mount-master --daemon --shell /system/bin/mksh --command /system/bin/mksh -'
+alias -x sush='smksh'
+alias ss='su --mount-master'
+
+
+#
+# pm (apk management)
+#
+alias -x pmlp='ulimit -c 0 && pm list packages'
+alias -x pmlps='ulimit -c 0 && pm list packages -s'
+alias -x pms='ulimit -c 0 && pm list packages -s'
+alias -x pmsg='ulimit -c 0 && pm list packages -s | grep'
+
+typeset -fx pmlpg; function pmlpg {
+  ulimit -c 0 && \
+  (pm list packages | grep -i "$@")
+}
+
+function pmgr {
+  local _S="$1" i; shift
+  pmlpg "$@" | \
+   (while read -r -- i
+      do pm "${_S}" "${i#*\:}"
+    done)
+  return $?
+}
+
+alias -x pmen='pmgr enable'
+alias -x pmdis='pmgr disable'
+
+
+#alias -x pidof='pg'
+alias nanoo="${NANO:-$(whence -p nano)}"' -D -K -L -c -w --'
+
+alias -x s2_='space2_'
+alias -x wp='whence -p'
+alias -x sqc='sqliteclean'
+alias -x al='autoload -fu '"${FPATH}/; . $FPATH/*"
+alias -x add='autoload -fu'
+alias -x spr='svc power reboot'
+alias -x sps='svc power shutdown'
+alias -x ts='typeset'
+
+alias -x h='help '
+
+#---------- ---------- ---------- ----------
+}
+
+
+function bh { bash -c 'help '"$@"; }
+
+function res {
+(( ${VT_RESIZE:-0} )) && { unset VT_RESIZE && trap -- SIGWINCH;} \
+|| \
+{ global VT_RESIZE=1 && trap -- 'case ${VT_RESIZE:-0} { (1) resize &>/dev/null ;; }' SIGWINCH;}
+return 0
+}
+
+# Escape fcn [/devious]
+function esc {
+set -U +u; local -- n= esc_ escl escr
+if [[ ${1:-} = *(--help|-help) && -n ${1:-} && ! -e ./*(--help|-help) ]]
+then
+print -r -- '  Usage: '"$0"' -[n] <esc_strs> <input_string>\n
+(esc_str(s) mapped --> "estr1;estr2;...;estrN" s.t. [[ estrn = @([0-8]|[30-37]|[40-47]) ]])
+
+Example cmd: esc "41;4;37" testtwst
+> testtwst (red bg, underlined, white fg)
+
+>>>[[caution: Using escape_string(s) outside the specified ranges not recommended, just try "d"]]<<<'
+fi && return \
+|| \
+(( $# )) && [[ $1 == \-n ]] && n=\-n\ ; : ${esc_:=\\001\\r} ${escl:=\\001\\033\[${1}m\\001} ${escr:=\\001\\033\[0m\\001}
+shift \
+&& (( $# )) && \
+print ${n}-- "${esc_}${escl}$@${escr}" \
+|| print ${n}-- "${esc_}${escl}"
+}
+
+# list_sort-by-size
+function lsn {
+(( $# > 0 )) && (ls -s "$@" | sort -n) \
+|| (ls -s . | sort -n)
+}
+
+function strgr {
+strings -an1 -- "$1" \
+| (shift 1 && grep "$@")
+}
+
+function term {
+[[ ! -z $* ]] || { print -- "TERM=${TERM:-}
+TERMPATH=${TERMPATH:-}
+TERMINFO=${TERMINFO:-}
+TERMCAP=${TERMCAP:-}" && return 0; }
+
+# must be global to set ENV stuff
+global TERM TERMINFO TERMPATH
+local t="$*"; [[ -e ${TERMINFO:=/system/etc/terminfo}/${t:0:1}/$t ]] || { print "TERM: $*: not found." && return 1; }
+eval export TERMPATH="$TERMINFO/${t:0:1}/$t" TERM="$t" TERMINFO
+return $?
+}
+
+
+
+
+# BINDS
+[[ ! -o emacs ]] && set -o emacs +o vi -o vi-tabcomplete +o vi-esccomplete
+
+# cut-to-beginning-of-line
+#bind -m -- '^U=^K^A^Y^K^A'
+# or better
+bind -- '^[W=kill-region'
+bind -m -- '^U=^[ ^A^[W'
+
+# unjammer tab completion
+bind -m -- '^I= ^B^[=^D'
+
+# position-independent unjammer tab completion
+# prototype, not fully functional
+#bind -m -- '^I=^[ ^[ ^W^A^Y ^B^[=^H^W^X^X^Y^[f'
+# bind -m -- '^I=^W^[ ^[ ^A^Y ^B^[=^H^W^X^X^Y'
+# bind -m '^I=^[b^[ ^A^[W^[f^[=^[b^Y^[f'
+
+# bind -m -- '^I= ^K^[b^U^E ^B^[=^D^Y^[y^A^Y^[f^F^D'
+# bind '^XW'=kill-line
+
+# Logical Transmission Line
+#:||:&&:||:&&:||:&&:||:&&:||:&&:||:&&:||:
+
+umask 0000; umask -S 0000
+
+({ . ${FPATH}/* &}&)
+
+set -m -b +o posix +o sh +o restricted +o errexit +o keyword +o noexec
+
+:||:'
+----END OF INTERACTIVE-ONLY----
+:||:'
+
+;;
+} 2>/dev/null;
+
+set -h -u -U -o emacs -o viraw
+
+
+alias -x sysro='toolbox mount -o ro,suid,exec,noatime,nodiratime,remount /system 2>/dev/null'
+alias -x sysrw='toolbox mount -o rw,suid,exec,noatime,nodiratime,remount /system 2>/dev/null'
+alias -x datrw='toolbox mount -o nosuid,noexec,noatime,nodiratime,remount /data 2>/dev/null'
+alias -x datrws='toolbox mount -o suid,exec,noatime,nodiratime,remount /data 2>/dev/null'
+alias -x rootro='toolbox mount -o ro,suid,exec,noatime,nodiratime,remount rootfs 2>/dev/null'
+alias -x rootrw='toolbox mount -o rw,suid,exec,noatime,nodiratime,remount rootfs 2>/dev/null'
+alias -x cachrw='toolbox mount -o nosuid,noexec,noatime,nodiratime,remount /cache 2>/dev/null'
+alias -x cachrws='toolbox mount -o suid,exec,noatime,nodiratime,remount /cache 2>/dev/null'
+alias -x tmprw='toolbox mount -o rw,noauto,suid,exec,noatime,remount ${TMPDIR:-/tmp} 2>/dev/null'
+alias -x tmprws='toolbox mount -o rw,noauto,suid,exec,noatime,nodiratime,remount ${TMPDIR:-/tmp} 2>/dev/null'
+alias -x usrrw='toolbox mount -o rw,noauto,suid,exec,noatime,remount /usr 2>/dev/null'
+alias -x usrrws='toolbox mount -o rw,noauto,suid,exec,noatime,nodiratime,remount /usr 2>/dev/null'
+alias -x usrro='toolbox mount -o ro,noauto,nosuid,noexec,atime,remount /usr 2>/dev/null'
+
+
+alias ls=ls l=l lo=lo la=la lk=lk ld=ld lsd=lsd; \
+unalias ls l lo la lk ld lsd; \
+ if [[ ! -z ${BBNDK:-} ]]; then
+alias -x ls='busybox.ndk ls'
+alias -x l='ls -A -w45 --color=auto'
+alias -x la='l -aF'
+alias -x ll='busybox.ndk ls -AlF --color=auto'
+alias -x lo='ls -AF --color=auto'
+ elif [[ ! -z ${BB:-} ]]; then
+alias -x ls='busybox ls'
+alias -x l='ls -A -w45 --color=auto'
+alias -x la='l -aF'
+alias -x ll='busybox ls -AlF --color=auto'
+alias -x lo='ls -AF --color=auto'
+ elif [[ ! -z ${TOOLBOX:-} ]]; then
+alias -x ls="$TOOLBOX"' ls'
+alias -x l='ls -F'
+alias -x la='l -a'
+alias -x ll='toolbox ls -alZF'
+alias -x lo='l -AF'
+ fi
+alias -x lsd='l -d'
+# type ld >/dev/null 2>&1 || alias -x ld='lsd */'
+alias -x lsz="$BBNDK"' ls -Z'
+alias -x lszd="$BBNDK"' ls -Zd'
+alias -x psz="$BBNDK"' ps -Z'
+alias -x idz="$BBNDK"' id -Z'
+alias -x lk='l -s'
+alias -x loo='lo */'
+alias -x llo='ll -d'
+
+
+[[ -x /system/xbin/daemonsu ]] && {
+alias daemonsu=daemonsu; unalias daemonsu; \
+[[ $(su -v | (read -r -- i; print ${i#*\:}) ) = SUPERSU ]] \
+   && (( $(su -v | (read -r -- i; i=${i#*\.}; print ${i%\:*}) ) > 91 )) \
+   && alias -x daemonsu='/system/xbin/daemonsu --mount-master --daemon --shell '"$(whence -p mksh)" \
+|| alias -x daemonsu='/system/xbin/su --daemon --shell '"$(whence -p mksh)"
+} 2>/dev/null
+
+# alias sh=sh; unalias sh; alias -x sh='mksh'
+
+## ultra-lazy one-handed aliases: Part II
+[[ $(command -v w) ]] || alias -x w='whence -p'
+alias -x g='grep'
+alias -x lns="$BB"' ln -s'
+alias -x cpp="${BB}"' cp -p'
+alias -x cpn="${BB}"' cp -n'
+alias -x cpr="${BB}"' cp -r'
+alias -x cppn="${BB}"' cp -np'
+alias -x cps="${BB}"' cp -s'
+alias -x cppr="${BB}"' cp -rp'
+alias -x cpprn="${BB}"' cp -rpn'
+alias -x snc='sync'
+alias -x srw='sysrw'
+alias -x sro='sysro'
+alias -x rro='rootro'
+alias -x rrw='rootrw'
+alias -x rw='sudo toolbox mount -o rw,suid,exec,noatime,nodiratime,remount'
+alias -x ro='sudo toolbox mount -o ro,suid,exec,noatime,nodiratime,remount'
+[[ $(command -v c) ]] || alias -x c='cat'
+[[ $(command -v k) ]] || alias -x k='clear'
+alias -x kl='clear'; alias -x kk='clear'
+
+alias -x cv='catv -v'
+alias -x catu='toybox cat -u'
+typeset -fx awkp; function awkp { awk '{ print '"${@}"' }';}
+alias -x mm='mounts; fstrims'
+[[ $(command -v p) ]] || alias -x p='print'
+[[ $(command -v cwd) ]] || alias -x cwd='pwd'
+#alias -x nano='nano -wL'
+
+# fpath cmds
+for i in /system/etc/fpath/*; do eval alias -x "\"${i##*/}\""'="${i##*/}"'; done
+
+# alias -x lst='toolbox ls -a'
+# alias -x lo="$BBNDK"' ls -a'
+
+alias -x l4='l -w40'
+alias -x l5='l -w50'
+alias -x l6='l -w60'
+
+set -o nounset +o vi-tabcomplete
+unset pp p i j k x y z l m n _LINE LINE q qq
+
+#set -- > /dev/null
+
+typeset -fx lll; function lll { busybox ls -l "$@" | busybox awk '{ print $5,$9 }' | busybox sort -n
+}
+
+# tar-lz4 archiver && unarchiver
+function tlz4 {
+  local n="$@" arc='/dev/null'
+  n="${n//\ /_}"; n="${n//\;/_}"; n="${n//\\/_}"; n="${n//\//_}"; n="${n//\|/_}"; n="${n//\`/_}"; n="${n//\$/_}"; n="${n//\[/_}"; n="${n//\]/_}"; n="${n//\{/_}"; n="${n//\}/_}"; n="${n//\&/_}"; n="${n//\(/_}"; n="${n//\)/_}"; n="${n//\*/_}"; n="${n//\#/_}"; n="${n//\!/_}"; n="${n//\=/_}"; n="${n//\:/_}"; n="${n//\,/_}"; n="${n//\?/_}"; n="${n//\"/_}"; n="${n//\'/_}"
+
+  arc="./$(busybox date -I)_${n:-15:-1}.tar.lz4"
+  print -u2 -- '\nOutput Archive: '"$arc"'\n'
+
+  tar -cf - "$@" | lz4c -zf - "${arc}"; return $?
+  [[ $? == 0 ]] || {
+    { sysrw; rootrw;} && \
+  tar -cf - "$@" | lz4c -zf - "${arc}" && \
+    { sysro; rootro;}
+  }
+  return $?
+}
+
+function utlz4 {
+  lz4c -d "$@" | tar -x
+}
+
+
+# cpio-lz4 archiver && unarchiver
+function clz4 {
+  local n="$@" arc='/dev/null'
+  n="${n//\ /_}"; n="${n//\;/_}"; n="${n//\\/_}"; n="${n//\//_}"; n="${n//\|/_}"; n="${n//\`/_}"; n="${n//\$/_}"; n="${n//\[/_}"; n="${n//\]/_}"; n="${n//\{/_}"; n="${n//\}/_}"; n="${n//\&/_}"; n="${n//\(/_}"; n="${n//\)/_}"; n="${n//\*/_}"; n="${n//\#/_}"; n="${n//\!/_}"; n="${n//\=/_}"; n="${n//\:/_}"; n="${n//\,/_}"; n="${n//\?/_}"; n="${n//\"/_}"; n="${n//\'/_}"
+
+  arc="./$(busybox date -I)_${n:-15:-1}.cpio.lz4"
+  print -u2 -- '\nOutput Archive: '"$arc"'\n'
+
+  find "$@" -print0 | cpio -H newc -o | lz4c -zf - "${arc}"
+  [[ $? == 0 ]] || {
+    { sysrw; rootrw;} && \
+    find "$@" -print0 | cpio -H newc -o | lz4c -zf - "${arc}" && \
+    { sysro; rootro;}
+  }
+  return $?
+}
+
+function uclz4 {
+  lz4c -d "$@" | cpio -i
+}
+
+alias iolz=clz
+alias uiolz=uclz
+
+
+alias -x pss='busybox.ndk ps -wlT'
+
+typeset -fx duu; duu() {
+   /system/bin/du -Pckax "$@" | sort -n | tail -n 100
+}
+
+# twrp default "-o 5"
+alias -x mkcachef2fs='mkfs.f2fs -d 0 -l cache -o 3 -t 1 -- /dev/block/platform/omap/omap_hsmmc.0/by-name/cache'
+
+
+#unset LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_IDENTIFICATION LC_MONETARY LC_NAME LC_NUMERIC LC_TELEPHONE LC_TIME
+
+set -U
+#p=en-US.UTF-8
+#export LANG=C LC_CTYPE=$p LC_MEASUREMENT=$p LC_MESSAGES=$p LC_PAPER=$p
+
+#: ${TIMEZONE:=${TZ:=MST7MDT}}
+#TZ='America/Denver'
+#TIMEZONE="$TZ"
+TZDATA=/system/usr/share/zoneinfo/tzdata
+
+#export TZ TIMEZONE TZDATA LANG LC_CTYPE LC_MEASUREMENT LC_MESSAGES LC_PAPER
+
+unset p q pp qq
+
+
+[[ $(command -v d) ]] || alias d='pwd'
+
+getv() {
+cat /sys/class/misc/customvoltage/regulator_voltages
+cat /sys/class/misc/customvoltage/mpu_voltages
+}
+alias gv=getv
+
+#nameref debian_datadata_bin=/data/data/info.guardianproject.lildebi/app_bin
+
+alias cddebi='cd /data/data/info.guardianproject.lildebi/app_bin'
+alias cddeb='cd /data/local/deb'
+
+alias dbash='cd /data/local/mnt ; (../deb/bootdeb&) ; rmdir ./data ./system 2>/dev/null ; (../deb/autorun&) ; chroot /data/local/mnt bin/bash'
+
+adbw() {
+adbww() {
+setprop ro.adb.secure 0 2>/dev/null
+setprop persist.sys.usb.config adb
+setprop sys.usb.config adb
+adbd start
+adb start-server
+adb forward tcp:5555 tcp:5555
+adb tcpip 5555
+adb wait-for-device
+}
+adbww 2>/dev/null &
+}
+
+function help {
+(( $# )) || set -- '.*'
+print -- '
+
+mksh [-+abCefhiklmnprUuvXx] [-T [!]tty | -] [-+o option] [-c string | -s | file [argument ...]]
+
+builtin-name [argument ...]
+
+[\\](...[\\])    (i.e. test \( -d . \) )
+(list)    (sub-shell list)
+{ list; }     (current-ENV executed list) 
+{ list;}
+{ { list; } } ....awkular
+
+: \${|list;}     (valsub: inherent localized $REPLY-return-string and a return value)
+
+: \${list;}     (funsub: inherent localized return value)
+
+: \${...}      (variable manipulation)
+
+case word in [[(] pattern [| pat] ...) list [;; | ;& | ;| ]] ... esac      (;;& same as ;|)
+case word { [[(] pattern [| pat] ...) list [;; | ;& | ;| ]] ... ; }      (;;& same as ;|)
+
+for name [in word ...]; do list; done
+for name; { list; }
+
+if list; then list; [elif list; then list;] ... [else list;] fi
+
+select name [in word ...]; do list; done
+select name; { list; }
+
+until list; do list; done
+
+while list; do list; done
+
+function name { list; }
+
+name() command
+function name() { list; }
+
+#---------
+
+autoload='\''typeset -fu'\''
+functions='\''typeset -f'\''
+hash='\''alias -t'\''
+history='\''fc -l'\''
+integer='\''typeset -i'\''
+local='\''typeset'\''
+login='\''exec login'\''
+nameref='\''typeset -n'\''
+nohup='\''nohup '\''
+r='\''fc -e -'\''
+stop='\''kill -STOP'\''
+type='\''whence -v'\''
+
+#---------
+
+. file [arg ...]   (see source)
+
+: [...]
+
+[ expression ]   (see test)
+[[ expression* {[||][&&]} ... ]]   (see test)
+
+(( expression** ))   (see let)
+
+alias [-d | -t [-r] | +-x] [-p] [+] [name[=value] ...]
+
+bg [job ...]
+
+bind [-l]
+bind [-m] string=[substitute] ...
+bind string=[editing-command] ...
+
+break [level]
+
+builtin [--] command [arg ...]
+[builtins]...POSIX special built-in utilities...
+[builtins] ., :, break, continue, eval,
+[builtins] exec, exit, export, readonly,
+[builtins] return, set, shift, times, trap, unset
+
+[builtins] ...Additional mksh commands keeping assignments...
+[builtins] builtin, global, typeset, wait
+
+[builtins] ...Builtins that are not special...
+[builtins] [, alias, bg, bind, cat, cd,
+[builtins] command, echo, false, fc, fg,
+[builtins] getopts, jobs, kill, let, (mknod*),
+[builtins] print, pwd, read, (realpath*),
+[builtins] rename, sleep, suspend, test,
+[builtins] true, ulimit, umask, unalias, whence
+
+
+cat [-u] [file ...]
+
+cd [-L] [dir]
+cd -P [-e] [dir]
+chdir [-eLP] [dir]
+cd [-eLP] old new
+chdir [-eLP] old new
+
+command [-pVv] cmd [arg ...]
+
+continue [level]
+
+echo [-Een] [arg ...]
+
+eval command ...
+
+exec [command [arg ...]]
+
+exit [status]
+
+export [-p] [parameter[=value]]
+
+false
+
+fc [-e editor | -l [-n]] [-r] [first [last]]
+fc -e - | -s [-g] [old=new] [prefix]
+
+fg [job ...]
+
+getopts optstring name [arg ...]
+
+global [[+-alpnrtUux] [-L[n]] [-R[n]] [-Z[n]] [-i[n]] | -f [-tux]] [name[=value] ...]   (see typeset)
+
+hash [-r] [name ...]
+
+jobs [-lnp] [job ...]
+
+kill [-s signame | -signum | -signame] { job | pid | pgrp } ...
+
+kill -l [exit-status ...]
+
+let [expression ...]
+let] [expression ...]
+
+mknod [-m mode] name b|c major minor
+mknod [-m mode] name p
+
+print [-nprsu[n] | -R [-en]] [argument ...]
+
+printf format [arguments ...]
+
+pwd [-LP]
+
+read [-A | -a] [-d x] [-N z | -n z] [-p | -u[n]] [-t n] [-rs] [p ...]
+
+readonly [-p] [parameter[=value] ...]
+
+realpath [--] name
+
+rename [--] from to
+
+return [status]
+
+set [+-abCefhiklmnprsUuvXx] [+-o option] [+-A name] [--] [arg ...]
+
+shift [number]
+
+sleep seconds
+
+source file [arg ...]
+
+suspend
+
+test [-abcdefGgHhkLOoprSstuwx] [-nz] [+-o] expression (unary operand)
+test ... {[-nt|ot|ef|eq|ne|ge|gt|le|lt] [=|==|!=|>|<]} ... (binary operand)
+test [!] [(] ... [)] [-ao ...]
+
+time [-p] [pipeline]
+times
+
+trap [handler signal ...]
+
+true (! false)
+
+typeset [[+-alpnrtUux] [-LRZ[n]] [-i[n]] | -f [-tux]] [name[=value] ...]
+
+ulimit [-aBCcdefHilMmnOPpqrSsTtVvw] [value]
+
+umask [-S] [mask]
+
+unalias [-adt] [name ...]
+
+unset [-fv] parameter ...
+
+wait [job ...]
+
+whence [-pv] [name ...]' | \
+                                   \
+                 grep -iE --color=always -- "($@)"
+}
+
+
+alias ubuntu="sh /data/data/com.zpwebsites.linuxonandroid/files/bootscript.sh /sdcard/ubuntu/ubuntu.img"
+
+# tar-7z archiver && unarchiver
+function t7z {
+  local n="$@" arc='/dev/null'
+  n="${n//\ /_}"; n="${n//\;/_}"; n="${n//\\/_}"; n="${n//\//_}"; n="${n//\|/_}"; n="${n//\`/_}"; n="${n//\$/_}"; n="${n//\[/_}"; n="${n//\]/_}"; n="${n//\{/_}"; n="${n//\}/_}"; n="${n//\&/_}"; n="${n//\(/_}"; n="${n//\)/_}"; n="${n//\*/_}"; n="${n//\#/_}"; n="${n//\!/_}"; n="${n//\=/_}"; n="${n//\:/_}"; n="${n//\,/_}"; n="${n//\?/_}"; n="${n//\"/_}"; n="${n//\'/_}"
+
+  arc="./$(busybox date -I)_${n:-15:-1}.tar.7z"
+  print -u2 -- '\nOutput Archive: '"$arc"'\n'
+
+  tar -cf - "$@" | 7za a -si "${arc}"; return $?
+  [[ $? == 0 ]] || {
+    { sysrw; rootrw;} && \
+  tar -cf - "$@" | 7za a -si "${arc}" && \
+    { sysro; rootro;}
+  }
+  return $?
+}
+
+function ut7z {
+  7za x -so "$@" | tar -x
+}
+
+
+# tar-7z archiver && unarchiver
+function tlz {
+  local n="$@" arc='/dev/null'
+  n="${n//\ /_}"; n="${n//\;/_}"; n="${n//\\/_}"; n="${n//\//_}"; n="${n//\|/_}"; n="${n//\`/_}"; n="${n//\$/_}"; n="${n//\[/_}"; n="${n//\]/_}"; n="${n//\{/_}"; n="${n//\}/_}"; n="${n//\&/_}"; n="${n//\(/_}"; n="${n//\)/_}"; n="${n//\*/_}"; n="${n//\#/_}"; n="${n//\!/_}"; n="${n//\=/_}"; n="${n//\:/_}"; n="${n//\,/_}"; n="${n//\?/_}"; n="${n//\"/_}"; n="${n//\'/_}"
+
+  arc="./$(busybox date -I)_${n:-15:-1}.tar.lz"
+  print -u2 -- '\nOutput Archive: '"$arc"'\n'
+
+  tar -cf - "$@" | lzip -fkc > "${arc}"; return $?
+  [[ $? == 0 ]] || {
+    { sysrw; rootrw;} && \
+  tar -cf - "$@" | lzip -fkc > "${arc}" && \
+    { sysro; rootro;}
+  }
+  return $?
+}
+
+function utlz {
+  lzip -fdck "$@" | tar -x
+}
+
+
+alias cdwd='cd ~/wd'
+[[ $BASH ]] && alias bash="$BASH"
+
+:||:
+
+alias cddb='cd /system/dbin'
+PATH="${PATH}":/system/dbin:/system/dbin/sbin:/system/dbin/usr/bin
+
+alias duu='du -c'
+alias kali='. /system/etc/unsetenv; linuxdeploy shell'
+
+PATH="$PATH":/data/media/ubin/simple-cross-compiler-armv4tl.stripped/armv4tl-unknown-linux-gnueabi/bin:/data/media/ubin/simple-cross-compiler-armv4tl.stripped/bin
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH":/data/media/ubin/simple-cross-compiler-armv4tl.stripped/armv4tl-unknown-linux-gnueabi/lib:/data/media/ubin/simple-cross-compiler-armv4tl.stripped/lib
+
+alias nano='nano -wL'
+
+alias ttt='rrw;cp -r /data/media/tmp/rd/res/synapse /res;rm /res/synapse/config.json;/sbin/uci'
+alias cdv='cd /system/vendor'
+alias debi="sh /data/data/com.zpwebsites.linuxonandroid/files/bootscript.sh /sdcard/ubuntu/debian.img"
+
+# Begin patch
+#---Unalias list
+if whence -p busybox >/dev/null; then
+   unalias ls; alias ls='busybox ls -CF';
+fi
+if whence -p ss >/dev/null; then
+   unalias ss;
+fi
+if whence -p getprop >/dev/null; then
+   unalias getprop;
+fi
+if whence -p login >/dev/null; then 
+   unalias login;
+fi
+
+# this fix for "double execute" bugs on bashrc nanodroid
+if whence -p bash.bin >/dev/null; then
+alias bash="$(whence -p bash.bin)"
+else
+alias bash="$(whence -p bash)"
+fi
+
+: place customisations above this line
