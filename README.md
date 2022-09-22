@@ -9,6 +9,8 @@ I just share and hope it can be used and useful.
 
 Nb: If you have any copyright related issues or anything like that, don't hesitate to contact me.
 
+License
+https://www.mirbsd.org/MirOS-Licence.htm
 
 #Android #Shell #Mksh #MirBsd #Linux #Gnu #Terminal
 #mkshrc #bash #mod #modandroid
