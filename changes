@@ -19,6 +19,8 @@
 # in Mkshrc Mood Mod Project
 ## Bugs
 Fixed Can't patch with Mkshrc Mood Mod Project or mkshrc @7175 XDA files.
+[20:28 PM] [09/10/22]* 2.1
+- add somes function
 
 # in buildfpath.sh
 Sekarang tidak butuh login sebagai root agar al automatis bekerja.
