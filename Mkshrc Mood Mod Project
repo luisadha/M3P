@@ -2,10 +2,11 @@
 # $MirOS: src/bin/mksh/dot.mkshrc,v 1.88 2014/01/11 18:09:39 tg Exp $Android_mod by 7175@xda-developers.com 2014/08/04$
 # ${ENV:=/system/etc/mkshrc}
  
-# Patch by luisadha
+# Patch 2.1 9 OCT 2022 by luisadha
 
 
 #---Alias
+
 alias lsxbin='ls /system/xbin/'
 alias lsbinext='ls /system/bin/.ext'
 alias lsbin='ls /system/bin/'
@@ -115,6 +116,16 @@ function makezip() { zip -r "${1%%/}.zip" "$1" ; }
 
 # Make your directories and files access rights sane.
 function sanitize() { chmod -R u=rwX,g=rX,o= "$@" ;}
+
+function recordhabits() { busybox ls /sdcard/.tmp | wc -l; }
+
+function mountfix()
+{
+
+   mount -o rw,remount /
+   mount -o bind /sbin/.magisk/mirror/system /system
+   mount -o rw,remount /system
+}
 
 #--SETUP ZSH's PROMPT
 alias zsh=' unset TERM; setenv TERM xterm; $(whence -p zsh); ';
