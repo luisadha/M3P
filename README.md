@@ -8,8 +8,8 @@ Mkshrc ini serupa namun tak sama dengan yang ada di utas xda karena saya menamba
 Sumber xda
 
 ## Versi Tambalan.
-• memperbaiki error atau bug all yang diketahui dari mkshrc mod oleh @7175 XDA dan membangun folder fpath.
-• menambahkan fungsi, menghapus variable environment dan membatalkan aliases yang bermasalah atau tidak perlu.
+* memperbaiki error atau bug all yang diketahui dari mkshrc mod oleh @7175 XDA dan membangun folder fpath.
+* menambahkan fungsi, menghapus variable environment dan membatalkan aliases yang bermasalah atau tidak perlu.
 
 ## Fitur
 - Membangun lingkungan fungsi yang sebelumnya tidak ada di mkshrc milik 7175 dan menambah satu fungsi sampel kedalam Nya.
