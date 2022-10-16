@@ -1,0 +1,30 @@
+**Changelog for setups**
+
+1:45 PM 22/09/22 ]* 2.15
+- fix in mkshrc issue exec mksh failed
+- fix mount: system not in /proc/mount
+- add feature check patch requirements
+
+[6:32 PM] [09/04/22]* 2.14
+- Fix issue " if the patch file source is not available in /sdcard, but your system's mkshrc has been patched" #80422(Bugs in patch feature)
+
+[18:55 PM] [18/03/22]* 2.13
+
+- Major changes to the text in the script.
+[12:00 PM] [06/03/22]* 2.12
+- Slight text changes and added short option arguments
+
+[11:22 AM] [18/02/22]* 2.11
+- English text
+
+[2:36 PM] [17:02:22]* 2.10
+- Fix bugs (Changing the NEARME variable to NEARME2 has an effect on the script)
+
+-----
+# in Mkshrc Mood Mod Project
+## Bugs
+Fixed Can't patch with Mkshrc Mood Mod Project or mkshrc @7175 XDA files.
+
+# in buildfpath.sh
+Now there is no need to login as root for al automatically to work.
+
