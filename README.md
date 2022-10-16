@@ -1,4 +1,5 @@
-# Mkshrc Mod Mood Project (mkshrc/android)
+# ANDROID_ROOT/ETC/MKSHRC 
+MKSHRC MOOD MOD PROJECTS
 
 ## Deskripsi singkat
 Berbagai file untuk keperluan memodifikasi `/system/etc/mkshrc' baik mengganti atau hanya menambalnya saja dengan mkshrc anda sendiri yang diletakan pada /sdcard. 
