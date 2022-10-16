@@ -27,6 +27,15 @@ Sumber xda
 ## Intructions
 Ubah nama berkas dari "Mkshrc Mood Mod Project" ke "mkshrc", lalu jalankan skrip setups.sh dari terminal emulator, pilih opsi mana yang akan diambil seperti menambal atau mengganti, ketik `sh setups.sh --help' untuk melihat lebih banyak opsi.
 
+### Magisk
+```
+sh mountfix && SH setups.sh --help
+```
+
+### Non-Magisk
+```
+sh setups.sh --help
+```
 
 Saran proyek pihak ketiga
 - Bash (nanodroid/nanomod) atau Bash CCbins module magisk
