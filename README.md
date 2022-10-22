@@ -30,6 +30,8 @@ Ubah nama berkas dari "Mkshrc Mood Mod Project" ke "mkshrc", lalu jalankan skrip
 ### Magisk
 ```
 sh mountfix && SH setups.sh --help
+
+sh mountfix [enter], tambahan jendela baru dan mkshrc sudah berhasil di modifikasi.
 ```
 
 ### Non-Magisk
