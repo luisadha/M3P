@@ -1,6 +1,6 @@
-!!ROOT ONLY!!
-# $ANROID_ROOT/ETC/MKSHRC 
-MKSHRC MOOD MOD PROJECTS
+# CUSTOM MKSHRC FOR OLD ANDROID PHONE'S
+
+MKSHRC MOOD MOD PROJECTS from MKSHRC Mod (XDA)
 
 ## Deskripsi singkat
 Berbagai file untuk keperluan memodifikasi `/system/etc/mkshrc' baik mengganti atau hanya menambalnya saja dengan mkshrc anda sendiri yang diletakan pada /sdcard. 
