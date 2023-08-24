@@ -75,7 +75,7 @@ function logout () {
 #--HOSTNAME MUST = wlan0 for network
 function notsecure {
 HOSTNAME='localhost'
-hname=$(: ${ip:=$(ip addr show | grep -Eo 'inet 192\.168\.[0-9]+\.[0-9]+')};
+hname=$(: ${ip:=$(ip addr show | grep -Eo 'inet [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')};
 ip=${ip#* }; echo $ip);
 
 # busybox ifconfig wlan0 | #awk '/inet / { print #$2 }' | sed -e s#/addr##:// ); 
