@@ -2,48 +2,58 @@
 
 MKSHRC MOOD MOD PROJECTS from MKSHRC Mod (XDA)
 
-## Deskripsi singkat
-Berbagai file untuk keperluan memodifikasi `/system/etc/mkshrc' baik mengganti atau hanya menambalnya saja dengan mkshrc anda sendiri yang diletakan pada /sdcard. 
+## DECRIPTIONS
 
-Mkshrc ini serupa namun tak sama dengan yang ada di utas xda karena saya menambal untuk personalisasi
+Various files for modification purposes `/system/etc/mkshrc' either replace or simply tag them with your own mkshrc that is placed on /sdcard. 
 
-Sumber xda
+This Mkshrc is similar but not the same as the one on the xda thread because I'm patching it for personalization. 
 
-## Versi Tambalan.
-* memperbaiki error atau bug all yang diketahui dari mkshrc mod oleh @7175 XDA dan membangun folder fpath.
-* menambahkan fungsi, menghapus variable environment dan membatalkan aliases yang bermasalah atau tidak perlu.
+Source of the xda.
 
-## Fitur
-- Membangun lingkungan fungsi yang sebelumnya tidak ada di mkshrc milik 7175 dan menambah satu fungsi sampel kedalam Nya.
-- Auto load atau motd seperti di Termux, tetapi versi saya. Berjalan tanpa akses root.
-- Dinamik Prompt yang mempesona, Gaya SSH Connection status diaktifkan secara semula.
-- Ditambahkan ZSH Prompt Gaya Kali Linux, membutuhkan ZSH versi 5.0.5 dan xterm untuk pengaturan term anda.
-- Promt interaktif Jika anda menggunakan versi lama dari mksh
-
-## Prasyarat
-- Ijin su diberikan untuk proses instalasi ke sistem.
-- kotak alat sibuk dan kotak mainan.
+## The version of the chart.
+ 
+* fix all known errors or bugs from mkshrc mod by @7175 XDA and build the fpath root folder only. 
+* Additional functions, alias, remove variable environment and cancel out problematic or unnecessary aliases.
 
 
-## Intructions
-Ubah nama berkas dari "Mkshrc Mood Mod Project" ke "mkshrc", lalu jalankan skrip setups.sh dari terminal emulator, pilih opsi mana yang akan diambil seperti menambal atau mengganti, ketik `sh setups.sh --help' untuk melihat lebih banyak opsi.
+## Features 
 
-### Magisk
+- Build a function environment that didn't exist before in mkshrc belonging to 7175 and add one sample function to it. 
+- Auto load or motd like in Termux, but my version. Running without root access. 
+- Fascinating dynamic prompt, SSH Connection status is activated by default. 
+- Added ZSH Prompt to Linux Style, requires ZSH version 5.0.5 and xterm for your term settings. 
+- Interactive Promt If you use an old version of mksh
+
+
+# Prerequisites 
+- Su's been granted permission to process the installation to the system. 
+- a busy toolbox and a toy box.
+
+
+## INTRUCTIONS
+
+Change the file name from "Mkshrc Mood Mod Project" to "mkshrc", or download from the release and run the setups.sh script from the terminal emulator, select which options to take as patching or replacing, type `sh setups. sh --help' to see more options. 
+
+### The magic 
+I'm not going to lie. 
+
 ```
-sh mountfix && SH setups.sh --help
+sh mountfix && sh setups.sh --help 
 
-sh mountfix [enter], tambahan jendela baru dan mkshrc sudah berhasil di modifikasi.
-```
+sh mountfix ``` [enter], new window additions and mkshrc have been modified successfully. 
+I'm not going to lie.
 
 ### Non-Magisk
 ```
 sh setups.sh --help
 ```
 
-Saran proyek pihak ketiga
-- Bash (nanodroid/nanomod) atau Bash CCbins module magisk
-- pexec, zsh, busybox.ndk dan lainnya (unduh lampiran pada utas xda berjudul  "useful.bins" )
+
+## Third party project advice
+- bash (nanodroid/nanomod) or bash ccbins magical module
+- pexec, zsh, busybox.ndk and other (download attachments on xda thread titled "useful.bins" )
 - toybox binari
 
-P.S.: Please translate to your native language if you don't understand
-This text is still Indonesian
+Source :
+
+https://forum.xda-developers.com/tags/mksh/
